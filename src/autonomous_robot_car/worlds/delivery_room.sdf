@@ -1,0 +1,161 @@
+<?xml version="1.0"?>
+<sdf version="1.9">
+  <world name="delivery_room">
+    <physics name="fast_stable" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
+    <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+
+    <gravity>0 0 -9.81</gravity>
+    <magnetic_field>5.64e-6 22.43e-6 -42.82e-6</magnetic_field>
+    <atmosphere type="adiabatic"/>
+    <scene>
+      <ambient>0.55 0.55 0.55 1</ambient>
+      <background>0.12 0.15 0.19 1</background>
+      <shadows>true</shadows>
+      <grid>false</grid>
+    </scene>
+
+    <light name="ceiling_light" type="point">
+      <pose>0 0 3.4 0 0 0</pose>
+      <diffuse>0.95 0.92 0.86 1</diffuse>
+      <specular>0.25 0.25 0.25 1</specular>
+      <attenuation><range>12</range><constant>0.3</constant><linear>0.03</linear><quadratic>0.005</quadratic></attenuation>
+      <cast_shadows>true</cast_shadows>
+    </light>
+    <light name="fill_light" type="directional">
+      <pose>0 0 3 0.2 -0.3 0</pose>
+      <diffuse>0.45 0.50 0.60 1</diffuse>
+      <specular>0.1 0.1 0.1 1</specular>
+      <direction>-0.3 0.2 -1</direction>
+      <cast_shadows>true</cast_shadows>
+    </light>
+
+    <model name="floor">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>6.0 6.0 0.10</size></box></geometry></collision>
+        <visual name="visual">
+          <geometry><box><size>6.0 6.0 0.10</size></box></geometry>
+          <material><ambient>0.34 0.37 0.40 1</ambient><diffuse>0.45 0.48 0.50 1</diffuse><specular>0.08 0.08 0.08 1</specular></material>
+        </visual>
+        <pose>0 0 -0.05 0 0 0</pose>
+      </link>
+    </model>
+
+    <!-- 6 m x 6 m room with 1.2 m walls, tall enough for the camera to perceive. -->
+    <model name="north_wall">
+      <static>true</static><pose>0 3.0 0.60 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>6.1 0.10 1.20</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>6.1 0.10 1.20</size></box></geometry><material><ambient>0.72 0.74 0.76 1</ambient><diffuse>0.82 0.84 0.86 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="south_wall">
+      <static>true</static><pose>0 -3.0 0.60 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>6.1 0.10 1.20</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>6.1 0.10 1.20</size></box></geometry><material><ambient>0.72 0.74 0.76 1</ambient><diffuse>0.82 0.84 0.86 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="east_wall">
+      <static>true</static><pose>3.0 0 0.60 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>0.10 6.1 1.20</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>0.10 6.1 1.20</size></box></geometry><material><ambient>0.68 0.71 0.74 1</ambient><diffuse>0.80 0.82 0.84 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="west_wall">
+      <static>true</static><pose>-3.0 0 0.60 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>0.10 6.1 1.20</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>0.10 6.1 1.20</size></box></geometry><material><ambient>0.68 0.71 0.74 1</ambient><diffuse>0.80 0.82 0.84 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <!-- Large saturated panels are visual delivery goals. No map or range laser is used. -->
+    <model name="red_delivery_station">
+      <static>true</static><pose>2.92 1.65 0.62 0 0 0</pose>
+      <link name="sign">
+        <collision name="collision"><geometry><box><size>0.08 0.80 0.80</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>0.08 0.80 0.80</size></box></geometry><material><ambient>0.75 0.01 0.01 1</ambient><diffuse>1.0 0.015 0.015 1</diffuse><emissive>0.12 0 0 1</emissive></material></visual>
+      </link>
+    </model>
+    <model name="red_dock_marker">
+      <static>true</static><pose>2.48 1.65 0.006 0 0 0</pose>
+      <link name="link"><visual name="visual"><geometry><box><size>0.75 0.85 0.012</size></box></geometry><material><diffuse>0.42 0.04 0.04 1</diffuse></material></visual></link>
+    </model>
+
+    <model name="green_delivery_station">
+      <static>true</static><pose>-2.92 1.65 0.62 0 0 0</pose>
+      <link name="sign">
+        <collision name="collision"><geometry><box><size>0.08 0.80 0.80</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>0.08 0.80 0.80</size></box></geometry><material><ambient>0.01 0.62 0.05 1</ambient><diffuse>0.01 1.0 0.08 1</diffuse><emissive>0 0.10 0 1</emissive></material></visual>
+      </link>
+    </model>
+    <model name="green_dock_marker">
+      <static>true</static><pose>-2.48 1.65 0.006 0 0 0</pose>
+      <link name="link"><visual name="visual"><geometry><box><size>0.75 0.85 0.012</size></box></geometry><material><diffuse>0.03 0.34 0.06 1</diffuse></material></visual></link>
+    </model>
+
+    <model name="blue_delivery_station">
+      <static>true</static><pose>0.95 2.92 0.62 0 0 0</pose>
+      <link name="sign">
+        <collision name="collision"><geometry><box><size>0.80 0.08 0.80</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>0.80 0.08 0.80</size></box></geometry><material><ambient>0.01 0.08 0.72 1</ambient><diffuse>0.015 0.16 1.0 1</diffuse><emissive>0 0.02 0.14 1</emissive></material></visual>
+      </link>
+    </model>
+    <model name="blue_dock_marker">
+      <static>true</static><pose>0.95 2.48 0.006 0 0 0</pose>
+      <link name="link"><visual name="visual"><geometry><box><size>0.85 0.75 0.012</size></box></geometry><material><diffuse>0.03 0.08 0.40 1</diffuse></material></visual></link>
+    </model>
+
+    <!-- Furniture-sized obstacles exercise visual depth avoidance. -->
+    <model name="central_cabinet">
+      <static>true</static><pose>0 0.15 0.28 0 0 0.18</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>0.90 0.42 0.56</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>0.90 0.42 0.56</size></box></geometry><material><ambient>0.32 0.18 0.08 1</ambient><diffuse>0.55 0.31 0.12 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="low_ottoman">
+      <static>true</static><pose>1.15 -0.78 0.22 0 0 -0.25</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>0.65 0.62 0.44</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>0.65 0.62 0.44</size></box></geometry><material><ambient>0.16 0.22 0.28 1</ambient><diffuse>0.25 0.38 0.50 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="plant_pot">
+      <static>true</static><pose>-1.30 -0.55 0.29 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><cylinder><radius>0.25</radius><length>0.58</length></cylinder></geometry></collision>
+        <visual name="visual"><geometry><cylinder><radius>0.25</radius><length>0.58</length></cylinder></geometry><material><ambient>0.18 0.09 0.04 1</ambient><diffuse>0.36 0.16 0.07 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="side_table">
+      <static>true</static><pose>-1.35 1.55 0.35 0 0 0.42</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>0.58 0.58 0.70</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>0.58 0.58 0.70</size></box></geometry><material><ambient>0.20 0.20 0.18 1</ambient><diffuse>0.38 0.38 0.34 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <!-- A narrow obstacle validates that the low-percentile depth guard sees
+         furniture legs and poles instead of only broad cabinets. -->
+    <model name="floor_lamp_pole">
+      <static>true</static><pose>0.82 1.18 0.40 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><cylinder><radius>0.075</radius><length>0.80</length></cylinder></geometry></collision>
+        <visual name="visual"><geometry><cylinder><radius>0.075</radius><length>0.80</length></cylinder></geometry><material><ambient>0.08 0.08 0.09 1</ambient><diffuse>0.12 0.13 0.15 1</diffuse></material></visual>
+      </link>
+    </model>
+
+  </world>
+</sdf>

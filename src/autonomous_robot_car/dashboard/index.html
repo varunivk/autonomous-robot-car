@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ARC Delivery Console</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header>
+    <div class="brand-mark">A</div>
+    <div>
+      <p class="eyebrow">AUTONOMOUS ROBOT CAR</p>
+      <h1>Delivery Console</h1>
+    </div>
+    <div id="connection" class="connection offline"><span></span> Connecting</div>
+  </header>
+
+  <main>
+    <section class="camera-card panel">
+      <div class="panel-heading">
+        <div><p class="eyebrow">PRIMARY SENSOR</p><h2>Forward RGB-D Camera</h2></div>
+        <div id="cameraBadge" class="badge warning">WAITING</div>
+      </div>
+      <div class="camera-frame">
+        <img id="camera" alt="Live robot camera">
+        <div class="reticle"><i></i><i></i></div>
+        <div class="camera-overlay top"><span>CAM-01</span><span id="cameraAge">NO SIGNAL</span></div>
+        <div class="camera-overlay bottom"><span id="targetCue">TARGET —</span><span>RGB + DEPTH</span></div>
+      </div>
+    </section>
+
+    <section class="mission-card panel">
+      <div class="panel-heading">
+        <div><p class="eyebrow">MISSION CONTROL</p><h2>Delivery assignment</h2></div>
+        <div id="stateBadge" class="badge idle">BOOTING</div>
+      </div>
+      <label for="destination">Destination</label>
+      <select id="destination">
+        <option value="blue">Blue bay</option>
+        <option value="red">Red bay</option>
+        <option value="green">Green bay</option>
+        <option value="patrol">Autonomous patrol</option>
+      </select>
+      <div class="button-grid">
+        <button class="primary" id="startButton">Start mission</button>
+        <button id="pauseButton">Pause</button>
+        <button id="resumeButton">Resume</button>
+        <button class="danger" id="stopButton">Stop</button>
+      </div>
+      <div class="status-copy">
+        <p class="label">NAVIGATION STATUS</p>
+        <strong id="missionDetail">Waiting for robot…</strong>
+      </div>
+      <button class="delivery-button" id="deliveredButton">Acknowledge payload delivery</button>
+    </section>
+
+    <section class="metrics panel">
+      <div class="metric"><p>Obstacle range</p><strong id="distance">—</strong><span>metres ahead</span></div>
+      <div class="metric"><p>Ground speed</p><strong id="speed">0.00</strong><span>metres / second</span></div>
+      <div class="metric"><p>Pose</p><strong id="pose">0.0, 0.0</strong><span id="heading">heading 0°</span></div>
+      <div class="metric"><p>Visual target</p><strong id="target">LOST</strong><span id="targetDistance">searching</span></div>
+    </section>
+
+    <section class="payload panel">
+      <div>
+        <p class="eyebrow">PAYLOAD BAY</p>
+        <h2>100 g delivery tray</h2>
+        <p id="payloadText">Reference payload is loaded and secured.</p>
+      </div>
+      <button id="payloadButton" class="payload-toggle"><span class="payload-icon">▣</span><span id="payloadValue">100 g<br><small>LOADED</small></span></button>
+    </section>
+
+    <section class="safety panel">
+      <p class="eyebrow">SAFETY CHANNELS</p>
+      <div class="safety-row"><span>Camera heartbeat</span><b id="cameraSafety">CHECKING</b></div>
+      <div class="safety-row"><span>Depth collision guard</span><b id="depthSafety">ACTIVE</b></div>
+      <div class="safety-row"><span>Polar gap planner</span><b id="plannerStatus">STANDBY</b></div>
+      <div class="safety-row"><span>LiDAR dependency</span><b class="cyan">NONE</b></div>
+      <div class="safety-row"><span>Drive command</span><b id="driveCommand">0.00 / 0.00</b></div>
+    </section>
+  </main>
+
+  <footer><span>ARC · ROS 2 JAZZY</span><span>CAMERA-ONLY AUTONOMY</span><span id="uptime">UP 00:00</span></footer>
+  <div id="toast"></div>
+  <script src="/app.js"></script>
+</body>
+</html>
