@@ -1,208 +1,1775 @@
 <?xml version="1.0"?>
 <sdf version="1.9">
   <world name="warehouse">
+
+    <!-- ================= Physics ================= -->
     <physics name="fast_stable" type="ignored">
       <max_step_size>0.004</max_step_size>
       <real_time_factor>1.0</real_time_factor>
     </physics>
 
-    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
-    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
-    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
-    <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+    <plugin filename="gz-sim-physics-system"
+            name="gz::sim::systems::Physics"/>
+
+    <plugin filename="gz-sim-user-commands-system"
+            name="gz::sim::systems::UserCommands"/>
+
+    <plugin filename="gz-sim-scene-broadcaster-system"
+            name="gz::sim::systems::SceneBroadcaster"/>
+
+    <plugin filename="gz-sim-sensors-system"
+            name="gz::sim::systems::Sensors">
       <render_engine>ogre2</render_engine>
     </plugin>
 
     <gravity>0 0 -9.81</gravity>
-    <magnetic_field>5.64e-6 22.43e-6 -42.82e-6</magnetic_field>
+
+    <magnetic_field>
+      5.64e-6 22.43e-6 -42.82e-6
+    </magnetic_field>
+
     <atmosphere type="adiabatic"/>
+
+    <!-- ================= Scene ================= -->
+
     <scene>
-      <ambient>0.55 0.55 0.55 1</ambient>
-      <background>0.12 0.15 0.19 1</background>
-      <shadows>false</shadows>
+
+      <ambient>
+        0.58 0.58 0.58 1
+      </ambient>
+
+      <background>
+        0.12 0.15 0.20 1
+      </background>
+
       <grid>false</grid>
+
+      <shadows>true</shadows>
+
     </scene>
 
-    <light name="ceiling_light_hub" type="point">
-      <pose>-1.0 0 3.4 0 0 0</pose>
-      <diffuse>0.95 0.92 0.86 1</diffuse>
-      <specular>0.25 0.25 0.25 1</specular>
-      <attenuation><range>14</range><constant>0.3</constant><linear>0.03</linear><quadratic>0.005</quadratic></attenuation>
+    <!-- ================= Lighting ================= -->
+
+    <light name="hub_light" type="point">
+
+      <pose>
+        -1.0 0 3.5 0 0 0
+      </pose>
+
+      <diffuse>
+        0.96 0.95 0.92 1
+      </diffuse>
+
+      <specular>
+        0.25 0.25 0.25 1
+      </specular>
+
+      <attenuation>
+        <range>15</range>
+        <constant>0.30</constant>
+        <linear>0.03</linear>
+        <quadratic>0.005</quadratic>
+      </attenuation>
+
       <cast_shadows>true</cast_shadows>
-    </light>
-    <light name="ceiling_light_aisles" type="point">
-      <pose>2.5 0 3.4 0 0 0</pose>
-      <diffuse>0.95 0.92 0.86 1</diffuse>
-      <specular>0.25 0.25 0.25 1</specular>
-      <attenuation><range>16</range><constant>0.3</constant><linear>0.03</linear><quadratic>0.005</quadratic></attenuation>
-      <cast_shadows>true</cast_shadows>
-    </light>
-    <light name="fill_light" type="directional">
-      <pose>0 0 3 0.2 -0.3 0</pose>
-      <diffuse>0.45 0.50 0.60 1</diffuse>
-      <specular>0.1 0.1 0.1 1</specular>
-      <direction>-0.3 0.2 -1</direction>
-      <cast_shadows>true</cast_shadows>
+
     </light>
 
-    <!-- Floor: hub (x -2.2..0) + 3 aisles running to x=5.0 -->
-    <model name="floor">
+    <light name="center_light" type="point">
+
+      <pose>
+        2.2 0 3.5 0 0 0
+      </pose>
+
+      <diffuse>
+        0.96 0.95 0.92 1
+      </diffuse>
+
+      <specular>
+        0.25 0.25 0.25 1
+      </specular>
+
+      <attenuation>
+        <range>16</range>
+        <constant>0.30</constant>
+        <linear>0.03</linear>
+        <quadratic>0.005</quadratic>
+      </attenuation>
+
+      <cast_shadows>true</cast_shadows>
+
+    </light>
+
+    <light name="dock_light" type="point">
+
+      <pose>
+        4.6 0 3.5 0 0 0
+      </pose>
+
+      <diffuse>
+        0.96 0.95 0.92 1
+      </diffuse>
+
+      <specular>
+        0.25 0.25 0.25 1
+      </specular>
+
+      <attenuation>
+        <range>14</range>
+        <constant>0.30</constant>
+        <linear>0.03</linear>
+        <quadratic>0.005</quadratic>
+      </attenuation>
+
+      <cast_shadows>true</cast_shadows>
+
+    </light>
+
+    <light name="fill_light"
+           type="directional">
+
+      <pose>
+        0 0 3 0.25 -0.30 0
+      </pose>
+
+      <direction>
+        -0.25 0.15 -1
+      </direction>
+
+      <diffuse>
+        0.45 0.50 0.60 1
+      </diffuse>
+
+      <specular>
+        0.10 0.10 0.10 1
+      </specular>
+
+    </light>
+
+    <!-- ================= Floor ================= -->
+
+    <model name="warehouse_floor">
+
       <static>true</static>
+
       <link name="link">
-        <collision name="collision"><geometry><box><size>7.2 8.0 0.10</size></box></geometry></collision>
+
+        <collision name="collision">
+
+          <geometry>
+
+            <box>
+
+              <size>
+                7.2 8.0 0.10
+              </size>
+
+            </box>
+
+          </geometry>
+
+        </collision>
+
         <visual name="visual">
-          <geometry><box><size>7.2 8.0 0.10</size></box></geometry>
-          <material><ambient>0.30 0.31 0.33 1</ambient><diffuse>0.40 0.42 0.44 1</diffuse><specular>0.10 0.10 0.10 1</specular></material>
+
+          <geometry>
+
+            <box>
+
+              <size>
+                7.2 8.0 0.10
+              </size>
+
+            </box>
+
+          </geometry>
+
+          <material>
+
+            <ambient>
+              0.32 0.33 0.35 1
+            </ambient>
+
+            <diffuse>
+              0.42 0.44 0.46 1
+            </diffuse>
+
+            <specular>
+              0.15 0.15 0.15 1
+            </specular>
+
+          </material>
+
         </visual>
-        <pose>1.4 0 -0.05 0 0 0</pose>
+
+        <pose>
+          1.4 0 -0.05 0 0 0
+        </pose>
+
       </link>
+
     </model>
 
-    <!-- Perimeter walls of the warehouse shell -->
-    <model name="hub_wall">
-      <static>true</static><pose>-2.2 0 0.60 0 0 0</pose>
+    <!-- ================= Warehouse Walls ================= -->
+
+    <model name="left_wall">
+
+      <static>true</static>
+
+      <pose>
+        -2.2 0 0.60 0 0 0
+      </pose>
+
       <link name="link">
-        <collision name="collision"><geometry><box><size>0.10 8.1 1.20</size></box></geometry></collision>
-        <visual name="visual"><geometry><box><size>0.10 8.1 1.20</size></box></geometry><material><ambient>0.68 0.71 0.74 1</ambient><diffuse>0.80 0.82 0.84 1</diffuse></material></visual>
+
+        <collision name="collision">
+
+          <geometry>
+
+            <box>
+
+              <size>
+                0.10 8.1 1.20
+              </size>
+
+            </box>
+
+          </geometry>
+
+        </collision>
+
+        <visual name="visual">
+
+          <geometry>
+
+            <box>
+
+              <size>
+                0.10 8.1 1.20
+              </size>
+
+            </box>
+
+          </geometry>
+
+        </visual>
+
       </link>
+
     </model>
-    <model name="back_wall">
-      <static>true</static><pose>5.0 0 0.60 0 0 0</pose>
+
+    <model name="right_wall">
+
+      <static>true</static>
+
+      <pose>
+        5.0 0 0.60 0 0 0
+      </pose>
+
       <link name="link">
-        <collision name="collision"><geometry><box><size>0.10 8.1 1.20</size></box></geometry></collision>
-        <visual name="visual"><geometry><box><size>0.10 8.1 1.20</size></box></geometry><material><ambient>0.68 0.71 0.74 1</ambient><diffuse>0.80 0.82 0.84 1</diffuse></material></visual>
+
+        <collision name="collision">
+
+          <geometry>
+
+            <box>
+
+              <size>
+                0.10 8.1 1.20
+              </size>
+
+            </box>
+
+          </geometry>
+
+        </collision>
+
+        <visual name="visual">
+
+          <geometry>
+
+            <box>
+
+              <size>
+                0.10 8.1 1.20
+              </size>
+
+            </box>
+
+          </geometry>
+
+        </visual>
+
       </link>
+
     </model>
+
     <model name="north_wall">
-      <static>true</static><pose>1.4 4.0 0.60 0 0 0</pose>
+
+      <static>true</static>
+
+      <pose>
+        1.4 4.0 0.60 0 0 0
+      </pose>
+
       <link name="link">
-        <collision name="collision"><geometry><box><size>7.3 0.10 1.20</size></box></geometry></collision>
-        <visual name="visual"><geometry><box><size>7.3 0.10 1.20</size></box></geometry><material><ambient>0.72 0.74 0.76 1</ambient><diffuse>0.82 0.84 0.86 1</diffuse></material></visual>
+
+        <collision name="collision">
+
+          <geometry>
+
+            <box>
+
+              <size>
+                7.3 0.10 1.20
+              </size>
+
+            </box>
+
+          </geometry>
+
+        </collision>
+
+        <visual name="visual">
+
+          <geometry>
+
+            <box>
+
+              <size>
+                7.3 0.10 1.20
+              </size>
+
+            </box>
+
+          </geometry>
+
+        </visual>
+
       </link>
-    </model>
-    <model name="south_wall">
-      <static>true</static><pose>1.4 -4.0 0.60 0 0 0</pose>
-      <link name="link">
-        <collision name="collision"><geometry><box><size>7.3 0.10 1.20</size></box></geometry></collision>
-        <visual name="visual"><geometry><box><size>7.3 0.10 1.20</size></box></geometry><material><ambient>0.72 0.74 0.76 1</ambient><diffuse>0.82 0.84 0.86 1</diffuse></material></visual>
-      </link>
+
     </model>
 
-    <!-- ===================== Aisle shelving (side walls) =====================
-         Aisles run along +X from x=0 to x=4.0, width 1.0 m clear, centered
-         on y = -3.0 (red), 0.0 (blue), 3.0 (green). -->
+    <model name="south_wall">
+
+      <static>true</static>
+
+      <pose>
+        1.4 -4.0 0.60 0 0 0
+      </pose>
+
+      <link name="link">
+
+        <collision name="collision">
+
+          <geometry>
+
+            <box>
+
+              <size>
+                7.3 0.10 1.20
+              </size>
+
+            </box>
+
+          </geometry>
+
+        </collision>
+
+        <visual name="visual">
+
+          <geometry>
+
+            <box>
+
+              <size>
+                7.3 0.10 1.20
+              </size>
+
+            </box>    <!-- ===================== Warehouse Shelves =====================
+         Improved layout:
+         - Shelf length increased from 4.0m to 5.0m
+         - Aisles widened for smoother robot movement
+         - Bay positions remain compatible with navigation.yaml
+    -->
+
+    <!-- ================= RED AISLE ================= -->
 
     <model name="red_shelf_left">
-      <static>true</static><pose>2.0 -3.55 0.55 0 0 0</pose>
+
+      <static>true</static>
+
+      <pose>
+        2.5 -3.70 0.60 0 0 0
+      </pose>
+
       <link name="link">
-        <collision name="collision"><geometry><box><size>4.0 0.10 1.10</size></box></geometry></collision>
-        <visual name="visual"><geometry><box><size>4.0 0.10 1.10</size></box></geometry><material><ambient>0.30 0.32 0.34 1</ambient><diffuse>0.45 0.47 0.50 1</diffuse></material></visual>
+
+        <collision name="collision">
+
+          <geometry>
+
+            <box>
+
+              <size>
+                5.0 0.12 1.20
+              </size>
+
+            </box>
+
+          </geometry>
+
+        </collision>
+
+        <visual name="visual">
+
+          <geometry>
+
+            <box>
+
+              <size>
+                5.0 0.12 1.20
+              </size>
+
+            </box>
+
+          </geometry>
+
+          <material>
+
+            <ambient>
+              0.32 0.34 0.36 1
+            </ambient>
+
+            <diffuse>
+              0.48 0.50 0.54 1
+            </diffuse>
+
+          </material>
+
+        </visual>
+
       </link>
+
     </model>
+
+
     <model name="red_shelf_right">
-      <static>true</static><pose>2.0 -2.45 0.55 0 0 0</pose>
+
+      <static>true</static>
+
+      <pose>
+        2.5 -2.30 0.60 0 0 0
+      </pose>
+
       <link name="link">
-        <collision name="collision"><geometry><box><size>4.0 0.10 1.10</size></box></geometry></collision>
-        <visual name="visual"><geometry><box><size>4.0 0.10 1.10</size></box></geometry><material><ambient>0.30 0.32 0.34 1</ambient><diffuse>0.45 0.47 0.50 1</diffuse></material></visual>
+
+        <collision name="collision">
+
+          <geometry>
+
+            <box>
+
+              <size>
+                5.0 0.12 1.20
+              </size>
+
+            </box>
+
+          </geometry>
+
+        </collision>
+
+        <visual name="visual">
+
+          <geometry>
+
+            <box>
+
+              <size>
+                5.0 0.12 1.20
+              </size>
+
+            </box>
+
+          </geometry>
+
+          <material>
+
+            <ambient>
+              0.32 0.34 0.36 1
+            </ambient>
+
+            <diffuse>
+              0.48 0.50 0.54 1
+            </diffuse>
+
+          </material>
+
+        </visual>
+
       </link>
+
     </model>
+
+
+
+    <!-- ================= BLUE AISLE ================= -->
 
     <model name="blue_shelf_left">
-      <static>true</static><pose>2.0 -0.55 0.55 0 0 0</pose>
+
+      <static>true</static>
+
+      <pose>
+        2.5 -0.70 0.60 0 0 0
+      </pose>
+
+
       <link name="link">
-        <collision name="collision"><geometry><box><size>4.0 0.10 1.10</size></box></geometry></collision>
-        <visual name="visual"><geometry><box><size>4.0 0.10 1.10</size></box></geometry><material><ambient>0.30 0.32 0.34 1</ambient><diffuse>0.45 0.47 0.50 1</diffuse></material></visual>
+
+        <collision name="collision">
+
+          <geometry>
+
+            <box>
+
+              <size>
+                5.0 0.12 1.20
+              </size>
+
+            </box>
+
+          </geometry>
+
+        </collision>
+
+
+        <visual name="visual">
+
+          <geometry>
+
+            <box>
+
+              <size>
+                5.0 0.12 1.20
+              </size>
+
+            </box>
+
+          </geometry>
+
+
+          <material>
+
+            <ambient>
+              0.32 0.34 0.36 1
+            </ambient>
+
+            <diffuse>
+              0.48 0.50 0.54 1
+            </diffuse>
+
+          </material>
+
+        </visual>
+
+
       </link>
+
     </model>
+
+
+
     <model name="blue_shelf_right">
-      <static>true</static><pose>2.0 0.55 0.55 0 0 0</pose>
+
+      <static>true</static>
+
+      <pose>
+        2.5 0.70 0.60 0 0 0
+      </pose>
+
+
       <link name="link">
-        <collision name="collision"><geometry><box><size>4.0 0.10 1.10</size></box></geometry></collision>
-        <visual name="visual"><geometry><box><size>4.0 0.10 1.10</size></box></geometry><material><ambient>0.30 0.32 0.34 1</ambient><diffuse>0.45 0.47 0.50 1</diffuse></material></visual>
+
+        <collision name="collision">
+
+          <geometry>
+
+            <box>
+
+              <size>
+                5.0 0.12 1.20
+              </size>
+
+            </box>
+
+          </geometry>
+
+        </collision>
+
+
+        <visual name="visual">
+
+          <geometry>
+
+            <box>
+
+              <size>
+                5.0 0.12 1.20
+              </size>
+
+            </box>
+
+          </geometry>
+
+
+          <material>
+
+            <ambient>
+              0.32 0.34 0.36 1
+            </ambient>
+
+            <diffuse>
+              0.48 0.50 0.54 1
+            </diffuse>
+
+          </material>
+
+
+        </visual>
+
+
       </link>
+
+
     </model>
+
+
+
+
+    <!-- ================= GREEN AISLE ================= -->
+
 
     <model name="green_shelf_left">
-      <static>true</static><pose>2.0 2.45 0.55 0 0 0</pose>
+
+      <static>true</static>
+
+      <pose>
+        2.5 2.30 0.60 0 0 0
+      </pose>
+
+
       <link name="link">
-        <collision name="collision"><geometry><box><size>4.0 0.10 1.10</size></box></geometry></collision>
-        <visual name="visual"><geometry><box><size>4.0 0.10 1.10</size></box></geometry><material><ambient>0.30 0.32 0.34 1</ambient><diffuse>0.45 0.47 0.50 1</diffuse></material></visual>
+
+
+        <collision name="collision">
+
+          <geometry>
+
+            <box>
+
+              <size>
+                5.0 0.12 1.20
+              </size>
+
+            </box>
+
+
+          </geometry>
+
+        </collision>
+
+
+        <visual name="visual">
+
+          <geometry>
+
+            <box>
+
+              <size>
+                5.0 0.12 1.20
+              </size>
+
+            </box>
+
+
+          </geometry>
+
+
+          <material>
+
+            <ambient>
+              0.32 0.34 0.36 1
+            </ambient>
+
+            <diffuse>
+              0.48 0.50 0.54 1
+            </diffuse>
+
+
+          </material>
+
+
+        </visual>
+
+
       </link>
-    </model>
-    <model name="green_shelf_right">
-      <static>true</static><pose>2.0 3.55 0.55 0 0 0</pose>
-      <link name="link">
-        <collision name="collision"><geometry><box><size>4.0 0.10 1.10</size></box></geometry></collision>
-        <visual name="visual"><geometry><box><size>4.0 0.10 1.10</size></box></geometry><material><ambient>0.30 0.32 0.34 1</ambient><diffuse>0.45 0.47 0.50 1</diffuse></material></visual>
-      </link>
+
+
     </model>
 
-    <!-- ===================== Delivery stations at the end of each aisle =====================
-         Same HSV-matched saturated colors as the original room, so
-         navigation_logic.HSV_RANGES needs no retuning. Dock markers sit
-         0.45 m in front of each panel, matching the original convention. -->
+
+
+    <model name="green_shelf_right">
+
+
+      <static>true</static>
+
+
+      <pose>
+        2.5 3.70 0.60 0 0 0
+      </pose>
+
+
+      <link name="link">
+
+
+        <collision name="collision">
+
+
+          <geometry>
+
+            <box>
+
+              <size>
+                5.0 0.12 1.20
+              </size>
+
+
+            </box>
+
+
+          </geometry>
+
+
+        </collision>
+
+
+
+        <visual name="visual">
+
+
+          <geometry>
+
+            <box>
+
+              <size>
+                5.0 0.12 1.20
+              </size>
+
+
+            </box>
+
+
+          </geometry>
+
+
+          <material>
+
+
+            <ambient>
+              0.32 0.34 0.36 1
+            </ambient>
+
+
+            <diffuse>
+              0.48 0.50 0.54 1
+            </diffuse>
+
+
+          </material>
+
+
+        </visual>
+
+
+      </link>
+
+
+    </model>
+
+          </geometry>
+
+        </visual>
+
+      </link>
+
+    </model>
+    <!-- ===================== DELIVERY STATIONS ===================== -->
+
+    <!-- RED DELIVERY BAY -->
 
     <model name="red_delivery_station">
-      <static>true</static><pose>4.30 -3.0 0.62 0 0 0</pose>
+
+      <static>true</static>
+
+      <pose>
+        4.45 -3.00 0.65 0 0 0
+      </pose>
+
       <link name="sign">
-        <collision name="collision"><geometry><box><size>0.08 0.80 0.80</size></box></geometry></collision>
-        <visual name="visual"><geometry><box><size>0.08 0.80 0.80</size></box></geometry><material><ambient>0.75 0.01 0.01 1</ambient><diffuse>1.0 0.015 0.015 1</diffuse><emissive>0.12 0 0 1</emissive></material></visual>
+
+        <collision name="collision">
+
+          <geometry>
+
+            <box>
+
+              <size>
+                0.12 1.00 0.90
+              </size>
+
+            </box>
+
+          </geometry>
+
+        </collision>
+
+
+        <visual name="visual">
+
+          <geometry>
+
+            <box>
+
+              <size>
+                0.12 1.00 0.90
+              </size>
+
+            </box>
+
+          </geometry>
+
+
+          <material>
+
+            <ambient>
+              0.75 0.01 0.01 1
+            </ambient>
+
+            <diffuse>
+              1.0 0.02 0.02 1
+            </diffuse>
+
+            <emissive>
+              0.12 0 0 1
+            </emissive>
+
+          </material>
+
+
+        </visual>
+
       </link>
+
     </model>
+
+
     <model name="red_dock_marker">
-      <static>true</static><pose>3.85 -3.0 0.006 0 0 0</pose>
-      <link name="link"><visual name="visual"><geometry><box><size>0.75 0.85 0.012</size></box></geometry><material><diffuse>0.42 0.04 0.04 1</diffuse></material></visual></link>
+
+      <static>true</static>
+
+      <pose>
+        3.85 -3.00 0.008 0 0 0
+      </pose>
+
+
+      <link name="link">
+
+        <visual name="visual">
+
+          <geometry>
+
+            <box>
+
+              <size>
+                1.00 1.00 0.012
+              </size>
+
+            </box>
+
+          </geometry>
+
+
+          <material>
+
+            <diffuse>
+              0.45 0.04 0.04 1
+            </diffuse>
+
+          </material>
+
+
+        </visual>
+
+      </link>
+
     </model>
+
+
+
+
+    <!-- BLUE DELIVERY BAY -->
 
     <model name="blue_delivery_station">
-      <static>true</static><pose>4.30 0.0 0.62 0 0 0</pose>
+
+
+      <static>true</static>
+
+
+      <pose>
+        4.45 0.00 0.65 0 0 0
+      </pose>
+
+
       <link name="sign">
-        <collision name="collision"><geometry><box><size>0.08 0.80 0.80</size></box></geometry></collision>
-        <visual name="visual"><geometry><box><size>0.08 0.80 0.80</size></box></geometry><material><ambient>0.01 0.08 0.72 1</ambient><diffuse>0.015 0.16 1.0 1</diffuse><emissive>0 0.02 0.14 1</emissive></material></visual>
+
+
+        <collision name="collision">
+
+
+          <geometry>
+
+
+            <box>
+
+
+              <size>
+                0.12 1.00 0.90
+              </size>
+
+
+            </box>
+
+
+          </geometry>
+
+
+        </collision>
+
+
+
+        <visual name="visual">
+
+
+          <geometry>
+
+
+            <box>
+
+
+              <size>
+                0.12 1.00 0.90
+              </size>
+
+
+            </box>
+
+
+          </geometry>
+
+
+
+          <material>
+
+
+            <ambient>
+              0.01 0.08 0.72 1
+            </ambient>
+
+
+            <diffuse>
+              0.02 0.18 1.0 1
+            </diffuse>
+
+
+            <emissive>
+              0 0.02 0.14 1
+            </emissive>
+
+
+          </material>
+
+
+        </visual>
+
+
       </link>
+
+
     </model>
+
+
+
+
     <model name="blue_dock_marker">
-      <static>true</static><pose>3.85 0.0 0.006 0 0 0</pose>
-      <link name="link"><visual name="visual"><geometry><box><size>0.75 0.85 0.012</size></box></geometry><material><diffuse>0.03 0.08 0.40 1</diffuse></material></visual></link>
+
+
+      <static>true</static>
+
+
+      <pose>
+        3.85 0.00 0.008 0 0 0
+      </pose>
+
+
+
+      <link name="link">
+
+
+        <visual name="visual">
+
+
+          <geometry>
+
+
+            <box>
+
+
+              <size>
+                1.00 1.00 0.012
+              </size>
+
+
+            </box>
+
+
+          </geometry>
+
+
+
+          <material>
+
+
+            <diffuse>
+              0.03 0.08 0.45 1
+            </diffuse>
+
+
+          </material>
+
+
+        </visual>
+
+
+      </link>
+
+
     </model>
+
+
+
+
+    <!-- GREEN DELIVERY BAY -->
+
 
     <model name="green_delivery_station">
-      <static>true</static><pose>4.30 3.0 0.62 0 0 0</pose>
+
+
+      <static>true</static>
+
+
+      <pose>
+        4.45 3.00 0.65 0 0 0
+      </pose>
+
+
       <link name="sign">
-        <collision name="collision"><geometry><box><size>0.08 0.80 0.80</size></box></geometry></collision>
-        <visual name="visual"><geometry><box><size>0.08 0.80 0.80</size></box></geometry><material><ambient>0.01 0.62 0.05 1</ambient><diffuse>0.01 1.0 0.08 1</diffuse><emissive>0 0.10 0 1</emissive></material></visual>
+
+
+        <collision name="collision">
+
+
+          <geometry>
+
+
+            <box>
+
+
+              <size>
+                0.12 1.00 0.90
+              </size>
+
+
+            </box>
+
+
+          </geometry>
+
+
+        </collision>
+
+
+
+        <visual name="visual">
+
+
+          <geometry>
+
+
+            <box>
+
+
+              <size>
+                0.12 1.00 0.90
+              </size>
+
+
+            </box>
+
+
+          </geometry>
+
+
+
+          <material>
+
+
+            <ambient>
+              0.01 0.62 0.05 1
+            </ambient>
+
+
+            <diffuse>
+              0.01 1.0 0.08 1
+            </diffuse>
+
+
+            <emissive>
+              0 0.10 0 1
+            </emissive>
+
+
+          </material>
+
+
+        </visual>
+
+
       </link>
-    </model>
-    <model name="green_dock_marker">
-      <static>true</static><pose>3.85 3.0 0.006 0 0 0</pose>
-      <link name="link"><visual name="visual"><geometry><box><size>0.75 0.85 0.012</size></box></geometry><material><diffuse>0.03 0.34 0.06 1</diffuse></material></visual></link>
+
+
     </model>
 
-    <!-- ===================== Hub obstacles =====================
-         Kept clear of the direct spawn->aisle sightlines (y = -3, 0, 3)
-         so the exploration heading can still find each panel, while still
-         exercising the depth-based avoidance planner. -->
+
+
+
+    <model name="green_dock_marker">
+
+
+      <static>true</static>
+
+
+      <pose>
+        3.85 3.00 0.008 0 0 0
+      </pose>
+
+
+
+      <link name="link">
+
+
+        <visual name="visual">
+
+
+          <geometry>
+
+
+            <box>
+
+
+              <size>
+                1.00 1.00 0.012
+              </size>
+
+
+            </box>
+
+
+          </geometry>
+
+
+
+          <material>
+
+
+            <diffuse>
+              0.03 0.38 0.06 1
+            </diffuse>
+
+
+          </material>
+
+
+        </visual>
+
+
+      </link>
+
+
+    </model>
+
+
+
+
+    <!-- ===================== CHARGING STATION ===================== -->
+
+
+    <model name="charging_station">
+
+
+      <static>true</static>
+
+
+      <pose>
+        -1.60 3.20 0.25 0 0 0
+      </pose>
+
+
+
+      <link name="link">
+
+
+        <collision name="collision">
+
+
+          <geometry>
+
+
+            <box>
+
+
+              <size>
+                0.60 0.40 0.50
+              </size>
+
+
+            </box>
+
+
+          </geometry>
+
+
+        </collision>
+
+
+
+        <visual name="visual">
+
+
+          <geometry>
+
+
+            <box>
+
+
+              <size>
+                0.60 0.40 0.50
+              </size>
+
+
+            </box>
+
+
+          </geometry>
+
+
+
+          <material>
+
+
+            <ambient>
+              0.10 0.40 0.10 1
+            </ambient>
+
+
+            <diffuse>
+              0.20 0.80 0.20 1
+            </diffuse>
+
+
+          </material>
+
+
+        </visual>
+
+
+      </link>
+
+
+    </model>
+
+
+
+
+    <!-- ===================== DECORATIVE RACK ===================== -->
+
+
+    <model name="storage_rack">
+
+
+      <static>true</static>
+
+
+      <pose>
+        -1.50 2.20 0.55 0 0 0
+      </pose>
+
+
+
+      <link name="link">
+
+
+        <collision name="collision">
+
+
+          <geometry>
+
+
+            <box>
+
+
+              <size>
+                0.90 0.25 1.10
+              </size>
+
+
+            </box>
+
+
+          </geometry>
+
+
+        </collision>
+
+
+
+        <visual name="visual">
+
+
+          <geometry>
+
+
+            <box>
+
+
+              <size>
+                0.90 0.25 1.10
+              </size>
+
+
+            </box>
+
+
+          </geometry>
+
+
+
+          <material>
+
+
+            <ambient>
+              0.40 0.42 0.45 1
+            </ambient>
+
+
+            <diffuse>
+              0.55 0.58 0.60 1
+            </diffuse>
+
+
+          </material>
+
+
+        </visual>
+
+
+      </link>
+
+
+    </model>
+        <!-- ===================== NAVIGATION OBSTACLES ===================== -->
+
+
+    <!-- Pallet Stack -->
+
     <model name="pallet_stack">
-      <static>true</static><pose>-0.6 1.5 0.30 0 0 0.15</pose>
+
+      <static>true</static>
+
+      <pose>
+        -0.60 1.50 0.30 0 0 0.15
+      </pose>
+
+
       <link name="link">
-        <collision name="collision"><geometry><box><size>0.85 0.70 0.60</size></box></geometry></collision>
-        <visual name="visual"><geometry><box><size>0.85 0.70 0.60</size></box></geometry><material><ambient>0.32 0.18 0.08 1</ambient><diffuse>0.55 0.31 0.12 1</diffuse></material></visual>
+
+
+        <collision name="collision">
+
+
+          <geometry>
+
+
+            <box>
+
+
+              <size>
+                0.85 0.70 0.60
+              </size>
+
+
+            </box>
+
+
+          </geometry>
+
+
+        </collision>
+
+
+
+        <visual name="visual">
+
+
+          <geometry>
+
+
+            <box>
+
+
+              <size>
+                0.85 0.70 0.60
+              </size>
+
+
+            </box>
+
+
+          </geometry>
+
+
+
+          <material>
+
+
+            <ambient>
+              0.32 0.18 0.08 1
+            </ambient>
+
+
+            <diffuse>
+              0.55 0.31 0.12 1
+            </diffuse>
+
+
+          </material>
+
+
+        </visual>
+
+
       </link>
+
+
     </model>
+
+
+
+
+    <!-- Support Pillar -->
+
+
     <model name="support_pillar">
-      <static>true</static><pose>-0.6 -1.5 0.55 0 0 0</pose>
+
+
+      <static>true</static>
+
+
+      <pose>
+        -0.60 -1.50 0.55 0 0 0
+      </pose>
+
+
+
       <link name="link">
-        <collision name="collision"><geometry><cylinder><radius>0.15</radius><length>1.10</length></cylinder></geometry></collision>
-        <visual name="visual"><geometry><cylinder><radius>0.15</radius><length>1.10</length></cylinder></geometry><material><ambient>0.18 0.19 0.20 1</ambient><diffuse>0.30 0.32 0.34 1</diffuse></material></visual>
+
+
+        <collision name="collision">
+
+
+          <geometry>
+
+
+            <cylinder>
+
+
+              <radius>
+                0.15
+              </radius>
+
+
+              <length>
+                1.10
+              </length>
+
+
+            </cylinder>
+
+
+          </geometry>
+
+
+        </collision>
+
+
+
+        <visual name="visual">
+
+
+          <geometry>
+
+
+            <cylinder>
+
+
+              <radius>
+                0.15
+              </radius>
+
+
+              <length>
+                1.10
+              </length>
+
+
+            </cylinder>
+
+
+          </geometry>
+
+
+
+          <material>
+
+
+            <ambient>
+              0.18 0.19 0.20 1
+            </ambient>
+
+
+            <diffuse>
+              0.30 0.32 0.34 1
+            </diffuse>
+
+
+          </material>
+
+
+        </visual>
+
+
       </link>
+
+
     </model>
+
+
+
+
+    <!-- Forklift Dummy Obstacle -->
+
+
     <model name="forklift_block">
-      <static>true</static><pose>-1.0 -0.9 0.20 0 0 0.35</pose>
+
+
+      <static>true</static>
+
+
+      <pose>
+        -1.00 -0.90 0.20 0 0 0.35
+      </pose>
+
+
+
       <link name="link">
-        <collision name="collision"><geometry><box><size>0.55 0.40 0.40</size></box></geometry></collision>
-        <visual name="visual"><geometry><box><size>0.55 0.40 0.40</size></box></geometry><material><ambient>0.55 0.35 0.02 1</ambient><diffuse>0.90 0.60 0.05 1</diffuse></material></visual>
+
+
+        <collision name="collision">
+
+
+          <geometry>
+
+
+            <box>
+
+
+              <size>
+                0.55 0.40 0.40
+              </size>
+
+
+            </box>
+
+
+          </geometry>
+
+
+        </collision>
+
+
+
+        <visual name="visual">
+
+
+          <geometry>
+
+
+            <box>
+
+
+              <size>
+                0.55 0.40 0.40
+              </size>
+
+
+            </box>
+
+
+          </geometry>
+
+
+
+          <material>
+
+
+            <ambient>
+              0.55 0.35 0.02 1
+            </ambient>
+
+
+            <diffuse>
+              0.90 0.60 0.05 1
+            </diffuse>
+
+
+          </material>
+
+
+        </visual>
+
+
       </link>
+
+
     </model>
+
+
+
+
+    <!-- Small Safety Barrier -->
+
+
+    <model name="safety_barrier">
+
+
+      <static>true</static>
+
+
+      <pose>
+        0.20 -1.70 0.25 0 0 0
+      </pose>
+
+
+
+      <link name="link">
+
+
+        <collision name="collision">
+
+
+          <geometry>
+
+
+            <box>
+
+
+              <size>
+                0.80 0.20 0.50
+              </size>
+
+
+            </box>
+
+
+          </geometry>
+
+
+        </collision>
+
+
+
+        <visual name="visual">
+
+
+          <geometry>
+
+
+            <box>
+
+
+              <size>
+                0.80 0.20 0.50
+              </size>
+
+
+            </box>
+
+
+          </geometry>
+
+
+
+          <material>
+
+
+            <ambient>
+              0.80 0.55 0.05 1
+            </ambient>
+
+
+            <diffuse>
+              1.0 0.70 0.05 1
+            </diffuse>
+
+
+          </material>
+
+
+        </visual>
+
+
+      </link>
+
+
+    </model>
+
+
+
+
+    <!-- ===================== END OF WORLD ===================== -->
+
 
   </world>
+
 </sdf>

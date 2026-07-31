@@ -1,44 +1,93 @@
 camera_navigator:
   ros__parameters:
+
     use_sim_time: true
-    cruise_speed: 0.34
-    search_speed: 0.20
-    approach_speed: 0.28
-    cautious_speed: 0.12
-    emergency_distance: 0.46
-    stop_distance: 0.62
-    turn_clearance: 0.34
-    slow_distance: 1.35
-    arrival_distance: 0.72
+
+
+    # ================= SPEED SETTINGS =================
+
+    cruise_speed: 2.00
+    search_speed: 0.75
+    approach_speed: 0.65
+    cautious_speed: 0.40
+
+
+    # ================= OBSTACLE SAFETY =================
+
+    emergency_distance: 0.40
+    stop_distance: 0.55
+    turn_clearance: 0.30
+    slow_distance: 1.20
+
+
+    # ================= ARRIVAL =================
+
+    arrival_distance: 0.60
     target_min_area_fraction: 0.001
+
+
+    # ================= CAMERA / CONTROL =================
+
     camera_timeout: 1.5
-    command_rate: 10.0
+    command_rate: 15.0
+
     maximum_depth: 8.0
+
     horizontal_fov: 1.74533
     surround_horizontal_fov: 1.74533
-    planner_bins: 72
-    planner_candidates: 33
+
+
+    # ================= PATH PLANNER =================
+
+    planner_bins: 90
+    planner_candidates: 45
+
     planner_max_heading: 1.39626
-    planner_heading_gain: 0.95
-    planner_hysteresis: 1.25
-    planner_switch_penalty: 0.75
+
+    planner_heading_gain: 0.85
+    planner_hysteresis: 1.50
+    planner_switch_penalty: 1.00
+
+
+    # ================= ROBOT DIMENSIONS =================
+
     robot_width: 0.43
-    gap_safety_margin: 0.08
+
+    gap_safety_margin: 0.05
+
     robot_half_length: 0.255
     robot_half_width: 0.215
-    reverse_speed: 0.16
+
+
+    # ================= REVERSE RECOVERY =================
+
+    reverse_speed: 0.35
+
     reverse_stuck_timeout: 3.0
-    reverse_duration: 1.8
-    # Saved approach poses in the simulation's startup odom frame. These let
-    # the robot route toward a bay before its colored panel is visible.
+    reverse_duration: 1.5
+
+
+    # ================= KNOWN BAY POSITIONS =================
+    # Matches updated warehouse.sdf
+
     use_known_bay_poses: true
-    red_bay_x: 5.35
+
+    red_bay_x: 4.45
     red_bay_y: -3.00
-    green_bay_x: 5.35
+
+    green_bay_x: 4.45
     green_bay_y: 3.00
-    blue_bay_x: 5.35
+
+    blue_bay_x: 4.45
     blue_bay_y: 0.00
+
+
+    # ================= EXPLORATION =================
+
     known_goal_search_radius: 0.90
-    exploration_distance: 1.00
-    exploration_stall_timeout: 9.0
-    exploration_clearance: 0.75
+
+    exploration_distance: 1.20
+
+    exploration_stall_timeout: 8.0
+
+    exploration_clearance: 0.70
