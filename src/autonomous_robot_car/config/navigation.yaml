@@ -1,17 +1,17 @@
 camera_navigator:
   ros__parameters:
     use_sim_time: true
-    cruise_speed: 0.22
-    search_speed: 0.13
-    approach_speed: 0.17
-    cautious_speed: 0.08
-    emergency_distance: 0.42
-    stop_distance: 0.55
-    turn_clearance: 0.27
-    slow_distance: 1.10
+    cruise_speed: 0.34
+    search_speed: 0.20
+    approach_speed: 0.28
+    cautious_speed: 0.12
+    emergency_distance: 0.46
+    stop_distance: 0.62
+    turn_clearance: 0.34
+    slow_distance: 1.35
     arrival_distance: 0.72
     target_min_area_fraction: 0.001
-    camera_timeout: 1.0
+    camera_timeout: 1.5
     command_rate: 10.0
     maximum_depth: 8.0
     horizontal_fov: 1.74533
@@ -23,7 +23,12 @@ camera_navigator:
     planner_hysteresis: 1.25
     planner_switch_penalty: 0.75
     robot_width: 0.43
-    gap_safety_margin: 0.05
+    gap_safety_margin: 0.08
+    robot_half_length: 0.255
+    robot_half_width: 0.215
+    reverse_speed: 0.16
+    reverse_stuck_timeout: 3.0
+    reverse_duration: 1.8
     # Saved approach poses in the simulation's startup odom frame. These let
     # the robot route toward a bay before its colored panel is visible.
     use_known_bay_poses: true

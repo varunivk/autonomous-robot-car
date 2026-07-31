@@ -117,6 +117,9 @@ class CameraNavigator(Node):
         self.failed_exploration_world_heading: Optional[float] = None
         self.last_linear = 0.0
         self.last_angular = 0.0
+        self.stuck_since: Optional[float] = None
+        self.reverse_active = False
+        self.reversing_until = 0.0
         self.sectors = DepthSectors(self.maximum_depth, self.maximum_depth, self.maximum_depth)
         self.left_clearance = self.maximum_depth
         self.right_clearance = self.maximum_depth
@@ -165,7 +168,12 @@ class CameraNavigator(Node):
             'planner_hysteresis': 1.25,
             'planner_switch_penalty': 0.75,
             'robot_width': 0.43,
-            'gap_safety_margin': 0.05,
+            'gap_safety_margin': 0.08,
+            'robot_half_length': 0.255,
+            'robot_half_width': 0.215,
+            'reverse_speed': 0.16,
+            'reverse_stuck_timeout': 3.0,
+            'reverse_duration': 1.8,
             'use_known_bay_poses': True,
             # Fixed simulation bay approach poses in the startup odom frame.
             # On hardware these values should come from the saved visual map.
@@ -287,6 +295,8 @@ class CameraNavigator(Node):
             self._reset_exploration()
             self.path_plan = None
             self.planned_world_heading = None
+            self.stuck_since = None
+            self.reverse_active = False
             self._publish_velocity(0.0, 0.0)
         elif command == 'delivered' and self.arrived:
             self.enabled = False
@@ -736,14 +746,58 @@ class CameraNavigator(Node):
 
         # Pure in-place turns still need a swept-corner guard. Translational
         # turns are already footprint-inflated by the polar gap planner.
+        # Pure in-place turns need a full swept-body guard: the robot's
+        # actual footprint (half-length x half-width) sweeps front, rear,
+        # AND the chosen side during a pivot, not just left/right.
+        swept_radius = math.hypot(self.robot_half_length, self.robot_half_width)
+        required_turn_clearance = max(float(self.turn_clearance), swept_radius)
         if self.enabled and linear <= 0.001 and abs(angular) > 0.10:
-            turning_clearance = (
+            side_clearance = (
                 self.left_clearance if angular > 0.0 else self.right_clearance
             )
-            if turning_clearance < self.turn_clearance:
+            if (
+                side_clearance < required_turn_clearance or
+                self.sectors.center < required_turn_clearance or
+                self.rear_clearance < required_turn_clearance
+            ):
                 angular = 0.0
                 self.state = 'TRAPPED'
-                self.detail = 'Safety stop: insufficient swept-corner clearance.'
+                self.detail = 'Safety stop: insufficient swept-body clearance to pivot.'
+
+        # If the robot can neither drive forward nor safely pivot for too
+        # long (e.g. wedged in an aisle while re-routing to a different
+        # bay), back straight out instead of stalling, as long as the rear
+        # camera confirms clear room behind it.
+        camera_ok = self._camera_is_fresh(now)
+        blocked_state = self.state in ('PATH_BLOCKED', 'TRAPPED', 'EXPLORATION_BLOCKED')
+        can_reverse = self.rear_clearance > (self.emergency_distance + 0.10)
+        if self.reverse_active:
+            if now < self.reversing_until and can_reverse and camera_ok:
+                linear = -float(self.reverse_speed)
+                angular = 0.0
+                self.state = 'REVERSING'
+                self.detail = 'Backing out of a dead end to find room to turn.'
+            else:
+                self.reverse_active = False
+                self.stuck_since = None
+                self.failed_exploration_world_heading = self.odom_yaw
+                self._reset_exploration()
+        elif self.enabled and not self.arrived and camera_ok and blocked_state:
+            if self.stuck_since is None:
+                self.stuck_since = now
+            elif now - self.stuck_since >= self.reverse_stuck_timeout:
+                if can_reverse:
+                    self.reverse_active = True
+                    self.reversing_until = now + self.reverse_duration
+                    linear = -float(self.reverse_speed)
+                    angular = 0.0
+                    self.state = 'REVERSING'
+                    self.detail = 'Backing out of a dead end to find room to turn.'
+                else:
+                    self.state = 'TRAPPED'
+                    self.detail = 'Safety stop: blocked ahead and no room to reverse.'
+        else:
+            self.stuck_since = None
 
         self._publish_velocity(linear, angular)
         self._publish_status(now)
