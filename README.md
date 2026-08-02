@@ -1,32 +1,24 @@
 # Autonomous Robot Car
 
-A simulation-first ROS 2 Jazzy project for a four-wheel-drive indoor delivery robot. The robot carries a modeled 100 g parcel on its top tray and navigates using only its top-mounted RGB-D camera—there is no LiDAR in the model, bridge, or controller.
+A simulation-first ROS 2 Jazzy project for a four-wheel-drive indoor delivery robot. The robot carries a modeled 100 g parcel on its delivery tray and navigates using only its cameras — there is no LiDAR in the model, bridge, or controller.
 
 The project includes:
 
 - A detailed URDF/Xacro delivery robot with four independently modeled driven wheels
-- Skid-steer dynamics, odometry, wheel state publication, camera, tray, and 100 g payload
-- A 6 m × 6 m Gazebo room with furniture obstacles and red, green, and blue delivery bays
+- Skid-steer (diff-drive) dynamics, odometry, wheel state publication, camera pod, tray, and 100 g payload
+- A Gazebo warehouse world with shelving, a charging station, obstacles, and red, green, and blue delivery bays (plus a smaller `delivery_room.sdf` test world)
 - Camera-only polar-gap path planning, visual destination search, approach, and arrival detection
 - A live browser dashboard with camera video, mission controls, telemetry, and safety state
-- RViz robot, TF, odometry-trail, and camera visualization
+- RViz robot, TF, and camera visualization
 - Headless mode and automated model/navigation tests
 
 ## Sensor design
 
-The simulated sensor is one panoramic RGB-D camera pod with four internal
-views: front, left, right, and rear. The front view supplies aligned color and
-depth for destination recognition; all four depth views form continuous 360°
-camera coverage for clearance checks. This makes metric indoor obstacle
-clearance reproducible with a panoramic or multi-lens depth-camera module on
-hardware. The system does not publish a laser scan or use LiDAR.
+The simulated sensor is one camera pod with four `rgbd_camera` views: front, left, right, and rear. The front view supplies aligned color and depth for destination recognition; all four depth views together give continuous 360° camera coverage for clearance checks. Each view runs at 10 Hz with a 100° (1.74533 rad) horizontal field of view and an 8 m depth range.
 
-Each view has a 100° horizontal field of view, so adjacent views overlap by
-10°. The safety controller uses the dedicated side views as swept-corner
-guards during skid turns and does not command reverse motion. If both turning
-sides are too close, it enters `TRAPPED` and waits for operator help.
+The safety controller uses the dedicated left/right/rear views as swept-body guards during in-place pivots. If both turning sides — or the space behind — are too tight, it stops and enters `TRAPPED`; if it's blocked for too long it backs straight out, but only once the rear view confirms clear room behind it.
 
-A plain monocular RGB camera cannot directly provide reliable metric obstacle distance without additional scale estimation. If the eventual hardware has only a monocular camera, replace the depth input with a visual-inertial odometry/monocular-depth component and revalidate every stopping distance before operating near people.
+No laser scanner is modeled, bridged, or subscribed to anywhere in the stack — `test_camera_pod_has_four_views_and_no_lidar` asserts this directly against the URDF.
 
 ## Requirements
 
@@ -71,16 +63,13 @@ source install/setup.bash
 ./run_sim.sh
 ```
 
-This opens Gazebo and RViz, starts the front and surround camera bridges, the autonomous controller, and the dashboard. Open the dashboard at:
+This opens Gazebo (loading `worlds/warehouse.sdf`) and RViz, starts the front and surround camera bridges, the autonomous controller, and the dashboard. Open the dashboard at:
 
 <http://localhost:8080>
 
-The launcher automatically removes Snap runtime-library paths inherited from
-the integrated terminal of a Snap-installed VS Code. This prevents RViz and
-Gazebo from accidentally loading `/snap/core20` versions of `libpthread` or
-GTK/Qt plugins instead of the Ubuntu/ROS 2 Jazzy versions.
+The launcher automatically strips Snap runtime-library paths (`LD_LIBRARY_PATH`, `PYTHONPATH`, `QT_PLUGIN_PATH`, etc.) that a Snap-installed VS Code's integrated terminal can inherit. This prevents RViz and Gazebo from loading `/snap` versions of `libpthread`/glibc or GTK/Qt plugins instead of the host Ubuntu/ROS 2 Jazzy ones.
 
-Choose a colored bay and press **Start mission**. Blue is a useful first test because the robot begins facing generally toward the blue side of the room. The central cabinet forces it to demonstrate avoidance. **Autonomous patrol** continuously roams without selecting a delivery marker.
+Choose a colored bay and press **Start mission**. **Autonomous patrol** continuously roams with obstacle avoidance and no delivery marker selected.
 
 Useful launch variants:
 
@@ -101,20 +90,20 @@ ros2 launch autonomous_robot_car display.launch.py
 
 ## Dashboard workflow
 
-1. Confirm **ROS CONNECTED**, camera **LIVE**, and collision guard **ACTIVE**.
-2. Confirm the simulated reference payload shows **100 g LOADED**.
+1. Confirm the connection badge is online, the camera badge is live, and the depth collision guard reads **ACTIVE**.
+2. Confirm the payload panel shows **100 g LOADED**.
 3. Select Red, Green, Blue, or Patrol and start the mission.
 4. Pause/resume as needed. **Stop** always publishes a zero velocity command.
-5. At a colored destination, the controller enters `ARRIVED` and stops. Remove the payload in the UI and acknowledge delivery.
+5. At a colored destination, the controller enters `ARRIVED` and stops. Toggle the payload off in the UI and acknowledge delivery to reset the mission.
 
-The payload toggle represents the delivery workflow; the Gazebo reference payload remains rigidly mounted so the simulated mass and center of gravity are deterministic.
+The payload toggle is a UI/telemetry indicator only — the Gazebo `payload_100g_link` remains rigidly mounted to the tray at all times, so the simulated mass and center of gravity stay deterministic regardless of what the dashboard shows.
 
 ## ROS interfaces
 
 | Topic | Type | Purpose |
 |---|---|---|
-| `/camera/image` | `sensor_msgs/Image` | RGB navigation and dashboard feed |
-| `/camera/depth_image` | `sensor_msgs/Image` | Camera-derived obstacle distance |
+| `/camera/image` | `sensor_msgs/Image` | Front RGB — navigation and dashboard feed |
+| `/camera/depth_image` | `sensor_msgs/Image` | Front camera-derived obstacle distance |
 | `/camera/camera_info` | `sensor_msgs/CameraInfo` | Camera calibration |
 | `/camera/{left,right,rear}/image` | `sensor_msgs/Image` | Surround RGB target handoff |
 | `/camera/{left,right,rear}/depth_image` | `sensor_msgs/Image` | 360° camera clearance coverage |
@@ -135,33 +124,23 @@ ros2 topic pub --once /mission/command std_msgs/msg/String "{data: 'stop'}"
 
 ## Controller behavior
 
-The navigator uses a fail-safe state machine:
+The navigator (`camera_navigator`) runs a fail-safe state machine at 15 Hz (`command_rate`):
 
-1. Stop if the RGB/depth camera heartbeat is stale.
-2. Fuse the four depth views into a 72-bin panoramic obstacle profile.
-3. Run a VFH-style local planner over 33 candidate headings, inflating obstacles by the robot width and safety margin.
-4. Detect the selected station using a vivid HSV color mask that rejects muted furniture colors.
-5. Route toward each fixed bay's saved approach pose even when its colored panel is completely occluded.
-6. Carry the last RGB-D goal observation through short occlusions with wheel odometry while all collision decisions remain camera-based.
-7. Move to new viewpoints through wide 360-degree camera gaps when no mapped or remembered goal is available; progress is measured by odometry, and a stalled corridor is not immediately retried.
-8. Preserve the selected gap in world coordinates with steering hysteresis, preventing left/right edge oscillation.
-9. Reacquire and center the station, then stop at the visual dock marker; reverse is never commanded.
+1. Stop if the front or any surround camera's RGB/depth heartbeat is stale.
+2. Fuse the four depth views into a panoramic obstacle profile (72 bins by default).
+3. Run a polar-gap local planner over 33 candidate headings, inflating obstacles by the robot's width and a safety margin.
+4. Detect the selected station using an HSV color mask, filtered by contour area and morphological open/close to reject small or muted-color noise.
+5. Route toward each bay's saved approach pose (`config/navigation.yaml`) even when its colored panel is fully occluded, if `use_known_bay_poses` is enabled.
+6. Carry the last RGB-D goal observation through short occlusions using wheel odometry, while all collision decisions stay camera-based.
+7. Move to new viewpoints through wide camera-confirmed gaps when no mapped or remembered goal is available; progress is measured by odometry, and a stalled route is not immediately retried.
+8. Preserve the selected gap in world coordinates with steering hysteresis and a switch penalty, preventing left/right edge oscillation.
+9. Center on the station once visible, then stop at the arrival distance; reverse is only ever used for stuck recovery, never as a normal approach behavior.
 
-Tuning parameters are in `src/autonomous_robot_car/config/navigation.yaml`. The conservative simulated top speed is 0.45 m/s at the Gazebo drive plugin and 0.22 m/s at the autonomy layer.
+Tuning parameters live in `src/autonomous_robot_car/config/navigation.yaml`. The Gazebo `DiffDrive` plugin caps the robot at 0.45 m/s forward / 0.20 m/s reverse; the autonomy layer's own speeds (cruise, search, approach) are lower still and are set per-mode in that config file.
 
-The modeled wheel-to-wheel width is approximately 0.43 m. With the default
-`gap_safety_margin: 0.05`, the planner requires about 0.53 m of usable gap
-width. Reduce that margin only after measuring the physical robot and
-calibrating every camera extrinsic; increasing it makes planning more
-conservative. Planner telemetry is included in `/autonomy/status` as selected
-heading, clearance, and estimated gap width.
+The modeled wheel track (`wheel_separation`) and the `robot_width` planner parameter are both roughly 0.43 m. With the default `gap_safety_margin: 0.05`, the planner requires about 0.48 m of usable gap width. Planner telemetry (selected heading, clearance, gap width) is published in `/autonomy/status`.
 
-The `*_bay_x` and `*_bay_y` parameters are saved approach poses in the
-simulation's startup `odom` frame. They model the fixed bay poses that would
-normally be recorded after building a visual map on the physical robot. Set
-`use_known_bay_poses: false` to test unknown-room exploration instead. Because
-the four camera views already cover 360 degrees, the robot does not waste time
-spinning at one viewpoint when a bay is hidden; it translates to reveal it.
+The `*_bay_x` / `*_bay_y` parameters are saved approach poses in the simulation's startup `odom` frame, matching `worlds/warehouse.sdf`. They model the fixed bay poses that would normally be recorded after building a visual map on the physical robot. Set `use_known_bay_poses: false` to force pure visual exploration instead.
 
 ## Validation
 
@@ -173,6 +152,8 @@ source install/setup.bash
 colcon test --event-handlers console_direct+
 colcon test-result --verbose
 ```
+
+`test_navigation_logic.py` covers depth-sector/obstacle detection, ray-range conversion, the polar gap planner, exploration heading selection, and color-target detection. `test_project_assets.py` validates the world files (three delivery stations by model name), confirms the xacro model expands to four driven wheels and exactly four `rgbd_camera` sensors with no LiDAR, confirms the 100 g payload link/mass, and checks the controller source for a specific reversing regression.
 
 For a manual integration check:
 
@@ -188,20 +169,13 @@ ros2 topic hz /camera/depth_image
 ros2 topic echo /autonomy/status
 ```
 
-Confirm that the front streams update near 15 Hz, the surround streams near 10 Hz, the status reports `camera_ok: true`, odometry changes after starting a mission, and `/cmd_vel` returns to zero after Pause, Stop, camera loss, or Arrival.
+Confirm that the camera streams update near 10 Hz, the status reports `camera_ok: true`, odometry changes after starting a mission, and `/cmd_vel` returns to zero after Pause, Stop, camera loss, or Arrival.
 
 ### GUI troubleshooting
 
-If RViz or Gazebo was started manually and reports a symbol error involving
-`/snap/core20/.../libpthread.so.0`, launch it through `./run_sim.sh`. The script
-sanitizes the inherited Snap environment before sourcing ROS. Existing failed
-launches should be stopped with `Ctrl+C` before trying again.
+If RViz or Gazebo was started manually (not through `./run_sim.sh`) and reports a symbol error involving a Snap library path (e.g. `libpthread.so.0` under `/snap/...`), launch it through `./run_sim.sh` instead — the script sanitizes the inherited Snap environment before sourcing ROS. Stop any existing failed launch with `Ctrl+C` before trying again.
 
-`./run_sim.sh` permits only one project simulation at a time and gives every
-run an isolated Gazebo transport partition. This prevents two Gazebo servers
-from publishing competing `/clock` timelines—the cause of RViz's
-`Detected jump back in time. Resetting RViz.` warning. RViz is also delayed
-until the simulation clock is stable.
+`./run_sim.sh` allows only one simulation per user at a time (via a lock file) and gives each run an isolated Gazebo transport partition (`GZ_PARTITION`). This prevents two Gazebo servers from publishing competing `/clock` timelines. RViz is also delayed by a few seconds at startup until the simulation clock is stable.
 
 ## Moving to hardware
 
@@ -209,25 +183,26 @@ Keep the ROS topic contract and replace the simulation adapters:
 
 | Simulation component | Hardware replacement |
 |---|---|
-| Gazebo panoramic RGB-D pod | Calibrated panoramic/multi-camera depth drivers with equivalent overlap |
-| Gazebo DiffDrive plugin | Motor controller with encoder feedback and watchdog |
-| `/odom` from Gazebo | Wheel encoder odometry, preferably fused with visual-inertial odometry |
+| Gazebo `rgbd_camera` pod (4 views) | Calibrated panoramic/multi-camera depth drivers with equivalent overlap |
+| Gazebo `DiffDrive` plugin | Motor controller with encoder feedback and a velocity watchdog |
+| `/odom` from Gazebo | Wheel encoder odometry, ideally fused with visual-inertial odometry |
 | Fixed 100 g payload | Load-rated tray plus an optional load cell/interlock |
+| `red/green/blue_bay_x/y` fixed poses | Poses recorded from an actual visual map, or `use_known_bay_poses: false` |
 
-Before physical operation, measure the real wheel radius/separation, calibrate camera intrinsics and camera-to-base extrinsics, add a hardware emergency stop and velocity watchdog, reduce speed, and retune stopping distances on the actual floor. This demonstration controller is suitable for structured rooms with marked destinations; production deployment among people requires a formally validated safety layer and more robust visual localization.
+Before physical operation, measure the real wheel radius/separation, calibrate camera intrinsics and camera-to-base extrinsics, add a hardware emergency stop, reduce speed limits, and retune stopping distances (`emergency_distance`, `stop_distance`, `arrival_distance`) on the actual floor. This controller is a demonstration suited to structured rooms with marked destinations; deployment among people needs a formally validated safety layer.
 
 ## Project layout
 
 ```text
-AUTONOMOUS_ROBOT_CAR/
+autonomous-robot-car/
 ├── build.sh
 ├── run_sim.sh
 └── src/autonomous_robot_car/
-    ├── autonomous_robot_car/   # Navigation and dashboard ROS nodes
-    ├── config/                 # Bridge, controller, and RViz configuration
+    ├── autonomous_robot_car/   # camera_navigator, navigation_logic, dashboard_node
+    ├── config/                 # Bridge, controller (navigation.yaml), and RViz configuration
     ├── dashboard/              # Browser UI (no external web dependencies)
-    ├── launch/                 # Full simulation and RViz-only launch files
-    ├── test/                   # Image-processing and model validation tests
+    ├── launch/                 # sim.launch.py, display.launch.py
+    ├── test/                   # Navigation-logic unit tests and project-asset validation
     ├── urdf/                   # Four-wheel robot Xacro
-    └── worlds/                 # Gazebo delivery room
+    └── worlds/                 # warehouse.sdf (default sim world), delivery_room.sdf
 ```
