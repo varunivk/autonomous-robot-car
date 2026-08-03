@@ -26,6 +26,7 @@ setup(
         'console_scripts': [
             'motor_driver_node = delivery_robot_hw.motor_driver_node:main',
             'encoder_node = delivery_robot_hw.encoder_node:main',
+            'camera_node = delivery_robot_hw.camera_node:main',
         ],
     },
 )
